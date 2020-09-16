@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "My chrome extension",
+  "version": "0.0.1",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "js": ["main.js"],
+      "css": ["main.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "background": {
+    "scripts": ["main.js"],
+    "persistent": false
+  },
+  "web_accessible_resources": ["assets/*"]
+}
