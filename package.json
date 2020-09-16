@@ -1,0 +1,56 @@
+{
+  "name": "giltab-releasenotes-chrome-extention",
+  "version": "0.0.1",
+  "description": "Chrome extension for post releases from jira to gitlab",
+  "main": "index.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.123",
+    "@types/node": "^14.10.2",
+    "@typescript-eslint/eslint-plugin": "^4.1.1",
+    "@typescript-eslint/parser": "^4.1.1",
+    "awesome-typescript-loader": "^5.2.1",
+    "css-loader": "^4.3.0",
+    "eslint": "^7.9.0",
+    "jest": "^26.4.2",
+    "mini-css-extract-plugin": "^0.11.2",
+    "node-sass": "^4.14.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "2.1.2",
+    "sass-loader": "^10.0.2",
+    "ts-loader": "^8.0.3",
+    "ts-node": "^9.0.0",
+    "tslint": "^6.1.3",
+    "typescript": "^4.0.2",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "scripts": {
+    "build:contentscript-background": "NODE_ENV=production webpack --config webpack.config.js",
+    "build": "npm run build:contentscript-background",
+    "watch:contentscript-background": "NODE_ENV=development webpack --config webpack.config.js -w",
+    "watch": "npm-run-all -parallel watch:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kreezag/giltab-releasenotes-extention.git"
+  },
+  "keywords": [
+    "gitlab",
+    "jira",
+    "extension",
+    "typescript",
+    "api"
+  ],
+  "author": "Kreezag",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kreezag/giltab-releasenotes-extention/issues"
+  },
+  "homepage": "https://github.com/Kreezag/giltab-releasenotes-extention#readme"
+}
