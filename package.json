@@ -4,7 +4,7 @@
   "description": "Chrome extension for post releases from jira to gitlab",
   "main": "index.ts",
   "directories": {
-    "lib": "lib"
+    "lib": "src"
   },
   "dependencies": {
     "lodash": "^4.17.20"
