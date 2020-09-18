@@ -1,2 +1,2 @@
 # giltab-releasenotes-extention
-Extension for post releases from jira to gitlab
+Chrome Extension for post releases from jira to gitlab
