@@ -12,9 +12,14 @@ interface Option {
   value: string;
 }
 
-const site = process.env.RESOURCE || "";
+const gitlabSite = process.env.GITLAB_RESOURCE || "";
+const jiraSite = process.env.JIRA_RESOURCE || "";
 
 const token = process.env.PRIVATE_TOKEN || "";
+
+const isJiraProjectPage = window.location.href.includes(
+  `${jiraSite}/projects/`
+);
 
 function api<T>(url: string): Promise<T> {
   return fetch(url)
@@ -31,7 +36,7 @@ function api<T>(url: string): Promise<T> {
 }
 
 // Consumer - consumer remains the same
-const projectOptions = api<Project[]>(`${site}/api/v4/projects/`)
+const getProjectOptions = () => api<Project[]>(`${gitlabSite}/api/v4/projects/`)
   .then(data =>
     data.map(({ name, id }) => ({
       label: name,
@@ -42,4 +47,10 @@ const projectOptions = api<Project[]>(`${site}/api/v4/projects/`)
     /* show error message */
   });
 
-console.log(projectOptions);
+if (document) {
+  document.addEventListener("DOMContentLoaded", function(event) {
+    if (isJiraProjectPage) {
+        getProjectOptions().then((options) => console.log('options', options))
+    }
+  });
+}
