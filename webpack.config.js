@@ -11,6 +11,9 @@ if (process.env.NODE_ENV === "production") {
 }
 module.exports = {
   mode: process.env.NODE_ENV,
+  node: {
+    fs: "empty"
+  },
   devtool: "inline-source-map",
   entry: {
     main: join(__dirname, "src/index.ts"),
