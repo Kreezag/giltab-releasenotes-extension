@@ -1,5 +1,3 @@
-console.log("Hello world");
-
 interface Project {
   readonly id: string;
   readonly name: string;
@@ -23,12 +21,10 @@ function api<T>(url: string): Promise<T> {
       return response.json();
     })
     .then(data => {
-      /* <-- data inferred as { data: T }*/
       return data;
     });
 }
 
-// Consumer - consumer remains the same
 const getProjectOptions = () =>
   api<Project[]>(`${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true`)
     .then(data =>
@@ -39,7 +35,6 @@ const getProjectOptions = () =>
     )
     .catch(error => {
       throw new Error(error);
-      /* show error message */
     });
 
 const createSelect = (options: Option[]) => {
