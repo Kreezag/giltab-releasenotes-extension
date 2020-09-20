@@ -1,5 +1,3 @@
-const dotenv = require("dotenv");
-
 console.log("Hello world");
 
 interface Project {
@@ -32,7 +30,7 @@ function api<T>(url: string): Promise<T> {
 
 // Consumer - consumer remains the same
 const getProjectOptions = () =>
-  api<Project[]>(`${gitlabSite}/api/v4/projects/`)
+  api<Project[]>(`${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true`)
     .then(data =>
       data.map(({ name, id }) => ({
         label: name,
@@ -47,29 +45,34 @@ const getProjectOptions = () =>
 const createSelect = (options: Option[]) => {
   const select = document.createElement("select");
 
-    [{ label: "Select Project", value: null }, ...options].map(({ label, value }) => {
-      const optionEl = document.createElement('option')
+  [{ label: "Select Project", value: null }, ...options].map(
+    ({ label, value }) => {
+      const optionEl = document.createElement("option");
 
-      optionEl.value = value
+      optionEl.innerText = label;
 
-      if (label) {
-        optionEl.innerText = label
+      if (value) {
+        optionEl.value = value;
       }
 
-      select.appendChild(optionEl)
-  })
+      select.appendChild(optionEl);
+    }
+  );
 
-    return select
+  return select;
 };
 
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
-    const releaseNoteId = 'release-report-notes-link'
+  const releaseNoteId = "release-report-notes-link";
 
   getProjectOptions().then(options => {
-      const selectEl  = createSelect(options)
+    const selectEl = createSelect(options);
 
-      document.querySelector(`#${releaseNoteId}`).closest('p').after(selectEl)
+    document
+      .querySelector(`#${releaseNoteId}`)
+      .closest("p")
+      .after(selectEl);
   });
 }
