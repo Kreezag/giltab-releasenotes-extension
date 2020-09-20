@@ -2,7 +2,11 @@ const { CheckerPlugin } = require("awesome-typescript-loader");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { optimize } = require("webpack");
 const { join } = require("path");
-let prodPlugins = [];
+const Dotenv = require('dotenv-webpack');
+const prodPlugins = [];
+
+
+
 if (process.env.NODE_ENV === "production") {
   prodPlugins.push(
     new optimize.AggressiveMergingPlugin(),
@@ -36,6 +40,7 @@ module.exports = {
     ]
   },
   plugins: [
+    new Dotenv(),
     new CheckerPlugin(),
     ...prodPlugins,
     new MiniCssExtractPlugin({
