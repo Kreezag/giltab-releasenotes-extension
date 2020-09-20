@@ -7,11 +7,14 @@ interface Project {
   readonly name: string;
 }
 
+interface Option {
+  label: string;
+  value: string;
+}
 const gitlabSite = process.env.GITLAB_RESOURCE || "";
 const jiraSite = process.env.JIRA_RESOURCE || "";
 
 const token = process.env.PRIVATE_TOKEN || "";
-
 
 function api<T>(url: string): Promise<T> {
   return fetch(url)
@@ -37,12 +40,36 @@ const getProjectOptions = () =>
       }))
     )
     .catch(error => {
-         throw new Error(error)
+      throw new Error(error);
       /* show error message */
     });
+
+const createSelect = (options: Option[]) => {
+  const select = document.createElement("select");
+
+    [{ label: "Select Project", value: null }, ...options].map(({ label, value }) => {
+      const optionEl = document.createElement('option')
+
+      optionEl.value = value
+
+      if (label) {
+        optionEl.innerText = label
+      }
+
+      select.appendChild(optionEl)
+  })
+
+    return select
+};
 
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
-  getProjectOptions().then(options => console.log("options", options));
+    const releaseNoteId = 'release-report-notes-link'
+
+  getProjectOptions().then(options => {
+      const selectEl  = createSelect(options)
+
+      document.querySelector(`#${releaseNoteId}`).closest('p').after(selectEl)
+  });
 }
