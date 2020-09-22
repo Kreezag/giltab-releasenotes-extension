@@ -10,7 +10,7 @@ interface Tag {
 
 interface Option {
   label: string;
-  value: string;
+  value: string|null;
 }
 
 interface SelectType {
@@ -73,31 +73,32 @@ const getReleaseOptions = projectId =>
       throw new Error(error);
     });
 
+const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
+    const optionEl = document.createElement("option");
+
+    optionEl.innerText = option.label;
+    optionEl.value = option.value;
+
+    selectEl.appendChild(optionEl);
+
+    return optionEl
+}
+
 const createSelect = (type: string, options: Option[]) => {
-  const select = document.createElement("select");
+  const selectEl: HTMLSelectElement = document.createElement("select");
 
-  select.dataset.type = type;
-  select.disabled = options.length === 1;
+    selectEl.dataset.type = type;
+    selectEl.disabled = options.length === 1;
 
-  [createPlaceholderOption(type), ...options].map(
-    ({ label, value }) => {
-      const optionEl = document.createElement("option");
-
-      optionEl.innerText = label;
-
-      if (value) {
-        optionEl.value = value;
-      }
-
-      select.appendChild(optionEl);
-    }
+  [createPlaceholderOption(type), ...options].forEach(
+    (option) => applySelectOption(selectEl, option)
   );
 
   document
     .querySelector(`.${parentSelector}`)
-    .appendChild(select);
+    .appendChild(selectEl);
 
-  return select;
+  return selectEl;
 };
 
 const removeSelect = (type: string) => {
@@ -134,19 +135,13 @@ const updateReleaseSelect = (projectId) => {
     selectEl.querySelectorAll('option').forEach((optionEl) => optionEl.remove())
 
     getReleaseOptions(projectId).then((options = []) => {
-        if (options.length === 0) {
+        if (options.length == 0) {
             selectEl.disabled = true;
         }
 
-        [createPlaceholderOption(SELECT_TYPE.RELEASE), ...options].forEach(({ value, label }) => {
-            const optionEl = document.createElement('option')
-
-            optionEl.textContent = label
-
-            if (value) {
-                optionEl.value = value
-            }
-        })
+        [createPlaceholderOption(SELECT_TYPE.RELEASE), ...options].forEach(
+            (option) =>  applySelectOption(selectEl, option)
+        )
     })
 }
 
