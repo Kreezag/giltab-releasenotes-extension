@@ -37,6 +37,18 @@ const getProjectOptions = () =>
       throw new Error(error);
     });
 
+const getTagsOptions = (projectId) =>
+    api<Project[]>(`${gitlabSite}/api/v4/projects/${projectId}/tags?private_token=${token}&archived=false&simple=true`)
+        .then(data =>
+            data.map(({ name, id }) => ({
+                label: name,
+                value: id
+            }))
+        )
+        .catch(error => {
+            throw new Error(error);
+        });
+
 const createSelect = (options: Option[]) => {
   const select = document.createElement("select");
 
@@ -62,6 +74,8 @@ const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 if (isJiraProjectPage) {
   const releaseNoteId = "release-report-notes-link";
 
+
+
   getProjectOptions().then(options => {
     const selectEl = createSelect(options);
 
@@ -69,5 +83,13 @@ if (isJiraProjectPage) {
       .querySelector(`#${releaseNoteId}`)
       .closest("p")
       .after(selectEl);
+
+    selectEl.onchange = (event) => {
+        console.log(event)
+
+        // getTagsOptions(event.value)
+    }
   });
+
+
 }
