@@ -10,7 +10,7 @@ interface Tag {
 
 interface Option {
   label: string;
-  value: string|null;
+  value: string;
 }
 
 interface SelectType {
@@ -23,12 +23,15 @@ const jiraSite = process.env.JIRA_RESOURCE || "";
 
 const token = process.env.PRIVATE_TOKEN || "";
 
-const parentSelector = "top-level-version-info";
+const PARENT_SELECTOR = "top-level-version-info";
 
 const SELECT_TYPE: SelectType = {
     PROJECT: 'project',
     RELEASE: 'release'
 }
+
+const SELECT_DEFAULT: string = '-placeholder-';
+
 
 const api = <T>(url: string): Promise<T> => {
   return fetch(url)
@@ -72,7 +75,7 @@ const getReleaseOptions = projectId =>
     });
 
 
-const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: null });
+const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: SELECT_DEFAULT });
 
 const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
     const optionEl = document.createElement("option");
@@ -89,14 +92,14 @@ const createSelect = (type: string, options: Option[]) => {
   const selectEl: HTMLSelectElement = document.createElement("select");
 
     selectEl.dataset.type = type;
-    selectEl.disabled = options.length === 1;
+    selectEl.disabled = (options.length === 0);
 
   [createPlaceholderOption(type), ...options].forEach(
     (option) => applySelectOption(selectEl, option)
   );
 
   document
-    .querySelector(`.${parentSelector}`)
+    .querySelector(`.${PARENT_SELECTOR}`)
     .appendChild(selectEl);
 
   return selectEl;
@@ -133,12 +136,16 @@ const updateReleaseSelect = (projectId) => {
         return;
     }
 
-    selectEl.querySelectorAll('option').forEach((optionEl) => optionEl.remove())
+    selectEl.querySelectorAll('option').forEach((optionEl) => {
+        if (optionEl.value !== SELECT_DEFAULT) {
+            optionEl.remove()
+        }
+    })
 
     getReleaseOptions(projectId).then((options = []) => {
         selectEl.disabled = (options.length == 0);
 
-        [createPlaceholderOption(SELECT_TYPE.RELEASE), ...options].forEach(
+        options.forEach(
             (option) =>  applySelectOption(selectEl, option)
         )
     })
@@ -150,7 +157,7 @@ const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 if (isJiraProjectPage) {
   createProjectSelect().then(select => {
       select.onchange = () => {
-          if (select.value) {
+          if (select.value !== SELECT_DEFAULT) {
               updateReleaseSelect(select.value)
           } else {
               removeSelect(SELECT_TYPE.RELEASE)
