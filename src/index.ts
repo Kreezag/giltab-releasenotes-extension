@@ -14,8 +14,8 @@ interface Option {
 }
 
 interface SelectType {
-    project: 'project';
-    release: 'release';
+    PROJECT: 'project';
+    RELEASE: 'release';
 }
 
 const gitlabSite = process.env.GITLAB_RESOURCE || "";
@@ -25,10 +25,12 @@ const token = process.env.PRIVATE_TOKEN || "";
 
 const parentSelector = "top-level-version-info";
 
-const selectTypes: SelectType = {
-    project: 'project',
-    release: 'release'
+const SELECT_TYPE: SelectType = {
+    PROJECT: 'project',
+    RELEASE: 'release'
 }
+
+const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: null });
 
 const api = <T>(url: string): Promise<T> => {
   return fetch(url)
@@ -75,9 +77,9 @@ const createSelect = (type: string, options: Option[]) => {
   const select = document.createElement("select");
 
   select.dataset.type = type;
-  select.disabled = options.length === 1
+  select.disabled = options.length === 1;
 
-  options.map(
+  [createPlaceholderOption(type), ...options].map(
     ({ label, value }) => {
       const optionEl = document.createElement("option");
 
@@ -103,25 +105,49 @@ const removeSelect = (type: string) => {
 }
 
 const createProjectSelect = () =>
-    getProjectOptions().then((options = []) =>
+    getProjectOptions().then((options: Option[] = []) =>
         createSelect(
-            selectTypes.project,
-            [{ label: `Select project`, value: null }, ...options]
+            SELECT_TYPE.PROJECT,
+            options
         )
     );
 
 
-const createTagsSelect = projectId => {
-    if (!projectId) {
-        return
+const createReleaseSelect = (projectId: string) => {
+    getReleaseOptions(projectId).then((options: Option[] = []) =>
+        createSelect(
+            SELECT_TYPE.RELEASE,
+            options
+        )
+    );
+}
+
+const updateReleaseSelect = (projectId) => {
+    const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`)
+
+    if (!selectEl) {
+        createReleaseSelect(projectId)
+
+        return;
     }
 
-    getReleaseOptions(projectId).then((options = []) =>
-        createSelect(
-            selectTypes.release,
-            [{ label: `Select release tag`, value: null }, ...options]
-        )
-    );
+    selectEl.querySelectorAll('option').forEach((optionEl) => optionEl.remove())
+
+    getReleaseOptions(projectId).then((options = []) => {
+        if (options.length === 0) {
+            selectEl.disabled = true;
+        }
+
+        [createPlaceholderOption(SELECT_TYPE.RELEASE), ...options].forEach(({ value, label }) => {
+            const optionEl = document.createElement('option')
+
+            optionEl.textContent = label
+
+            if (value) {
+                optionEl.value = value
+            }
+        })
+    })
 }
 
 
@@ -131,11 +157,9 @@ if (isJiraProjectPage) {
   createProjectSelect().then(select => {
       select.onchange = () => {
           if (select.value) {
-              removeSelect(selectTypes.release)
-
-              createTagsSelect(select.value)
+              updateReleaseSelect(select.value)
           } else {
-              removeSelect(selectTypes.release)
+              removeSelect(SELECT_TYPE.RELEASE)
           }
       }
   });
