@@ -3,11 +3,11 @@ Short plan:
 ###1. Create core functionality
 [x] - add select with project options 
 
-[ ] - display all project options 
+[ ] - display all project and tags options
 
 [ ] - add project filter ?
 
-[ ] - add select with project tags
+[x] - add select with project tags
 
 [ ] - add functionality to send release notes
 
