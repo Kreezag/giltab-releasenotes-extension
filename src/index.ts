@@ -3,6 +3,11 @@ interface Project {
   readonly name: string;
 }
 
+interface Tag {
+  readonly tag_name: string;
+  readonly name: string;
+}
+
 interface Option {
   label: string;
   value: string;
@@ -26,7 +31,23 @@ function api<T>(url: string): Promise<T> {
 }
 
 const getProjectOptions = () =>
-  api<Project[]>(`${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true`)
+  api<Tag[]>(
+    `${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true`
+  )
+    .then(data =>
+      data.map(({ name, tag_name }) => ({
+        value: tag_name,
+        label: name
+      }))
+    )
+    .catch(error => {
+      throw new Error(error);
+    });
+
+const getTagsOptions = projectId =>
+  api<Project[]>(
+    `${gitlabSite}/api/v4/projects/${projectId}/releases?private_token=${token}&archived=false&simple=true`
+  )
     .then(data =>
       data.map(({ name, id }) => ({
         label: name,
@@ -37,20 +58,10 @@ const getProjectOptions = () =>
       throw new Error(error);
     });
 
-const getTagsOptions = (projectId) =>
-    api<Project[]>(`${gitlabSite}/api/v4/projects/${projectId}/tags?private_token=${token}&archived=false&simple=true`)
-        .then(data =>
-            data.map(({ name, id }) => ({
-                label: name,
-                value: id
-            }))
-        )
-        .catch(error => {
-            throw new Error(error);
-        });
-
-const createSelect = (options: Option[]) => {
+const createSelect = (type: string, options: Option[]) => {
   const select = document.createElement("select");
+
+  select.dataset.type = type;
 
   [{ label: "Select Project", value: null }, ...options].map(
     ({ label, value }) => {
@@ -69,27 +80,53 @@ const createSelect = (options: Option[]) => {
   return select;
 };
 
+const createProjectSelect = () =>
+    getProjectOptions().then(options => {
+        const selectEl = createSelect('product', options);
+
+        setSelect(selectEl);
+
+        return selectEl;
+    });
+
+const createTagsSelect = projectId => {
+    if (!projectId) {
+
+    }
+
+    getTagsOptions(projectId).then(options => {
+        const selectEl = createSelect('tags', options);
+
+        setSelect(selectEl);
+
+        return selectEl;
+    });
+}
+
+
+const setSelect = (selectEl) => {
+    const releaseNoteId = "release-report-notes-link";
+
+    document
+        .querySelector(`#${releaseNoteId}`)
+        .closest("p")
+        .after(selectEl);
+}
+
+const removeSelect = (type: string) => {
+    document.querySelector(`select[data-type="${type}"]`)?.remove()
+}
+
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
-  const releaseNoteId = "release-report-notes-link";
-
-
-
-  getProjectOptions().then(options => {
-    const selectEl = createSelect(options);
-
-    document
-      .querySelector(`#${releaseNoteId}`)
-      .closest("p")
-      .after(selectEl);
-
-    selectEl.onchange = (event) => {
-        console.log(event)
-
-        // getTagsOptions(event.value)
-    }
+  createProjectSelect().then(select => {
+      select.onchange = () => {
+          if (select.value) {
+              createTagsSelect(select.value)
+          } else {
+              removeSelect('tags')
+          }
+      }
   });
-
-
 }
