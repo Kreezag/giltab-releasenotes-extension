@@ -25,8 +25,12 @@ Short plan:
 
 ###3. Improve functionality
 
+[ ] - create extension popup and form
+
 [ ] - create configure form (token, resource will be set manually in form)
 
 [ ] - storage data
+
+[ ] - add  project filter to extension form 
 
 ###4. // TODO
