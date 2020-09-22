@@ -30,8 +30,6 @@ const SELECT_TYPE: SelectType = {
     RELEASE: 'release'
 }
 
-const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: null });
-
 const api = <T>(url: string): Promise<T> => {
   return fetch(url)
     .then(response => {
@@ -72,6 +70,9 @@ const getReleaseOptions = projectId =>
     .catch(error => {
       throw new Error(error);
     });
+
+
+const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: null });
 
 const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
     const optionEl = document.createElement("option");
@@ -135,9 +136,7 @@ const updateReleaseSelect = (projectId) => {
     selectEl.querySelectorAll('option').forEach((optionEl) => optionEl.remove())
 
     getReleaseOptions(projectId).then((options = []) => {
-        if (options.length == 0) {
-            selectEl.disabled = true;
-        }
+        selectEl.disabled = (options.length == 0);
 
         [createPlaceholderOption(SELECT_TYPE.RELEASE), ...options].forEach(
             (option) =>  applySelectOption(selectEl, option)
