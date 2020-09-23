@@ -59,9 +59,9 @@ const getProjectOptionsByPage = (page: number = 0) =>
       throw new Error(error);
     });
 
-const getReleaseOptions = projectId =>
+const getReleaseOptions = (projectId, page) =>
   api<Tag[]>(
-    `${gitlabSite}/api/v4/projects/${projectId}/releases?private_token=${token}&archived=false&simple=true`
+    `${gitlabSite}/api/v4/projects/${projectId}/releases?private_token=${token}&archived=false&simple=true${page ? `&page=${page}` : ''}`
   )
     .then(data =>
       data.map(({ name, tag_name }) => ({
@@ -109,20 +109,17 @@ const removeSelect = (type: string) => {
     document.querySelector(`select[data-type="${type}"]`)?.remove()
 }
 
-const createReleaseSelect = (projectId: string) => {
-    getReleaseOptions(projectId).then((options: Option[] = []) =>
-        createSelect(
-            SELECT_TYPE.RELEASE,
-            options
-        )
-    );
-}
 
 const updateReleaseSelect = (projectId) => {
     const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`)
 
+    const createReleaseSelect = (options) => createSelect(
+        SELECT_TYPE.RELEASE,
+        options
+    )
+
     if (!selectEl) {
-        createReleaseSelect(projectId)
+        apiRequestGenerator((page) => getReleaseOptions(projectId, page), createReleaseSelect)
 
         return;
     }
@@ -133,13 +130,15 @@ const updateReleaseSelect = (projectId) => {
         }
     })
 
-    getReleaseOptions(projectId).then((options = []) => {
+    const setSelectOptions = (options = []) => {
         selectEl.disabled = (options.length == 0);
+        options.forEach((option) =>  applySelectOption(selectEl, option))
+    }
 
-        options.forEach(
-            (option) =>  applySelectOption(selectEl, option)
-        )
-    })
+    apiRequestGenerator((page) =>
+        getReleaseOptions(projectId, page),
+        setSelectOptions
+    )
 }
 
 

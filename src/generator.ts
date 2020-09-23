@@ -9,7 +9,7 @@ export function *requestGenerator (request) {
         const data = yield request(count)
         result[count] = data
 
-        hasResults = (Array.isArray(data) && data.length) || data
+        hasResults = data && Object.keys(data).length > 0
     }
 
     return Object.values(result).reduce((result:Array<any>, value) => result.concat(value), [])
