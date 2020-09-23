@@ -34,6 +34,13 @@ const SELECT_TYPE: SelectType = {
 
 const SELECT_DEFAULT: string = '-placeholder-';
 
+const URL_BASE = `${gitlabSite}/api/v4/projects/`;
+const URL_COMMON_PARAMS = `private_token=${token}$&archived=false&simple=true&sort=asc`;
+
+const createPageParams = (page) => page ? `&page=${page}` : '';
+const createProjectsUrl = (page) => `${URL_BASE}?${URL_COMMON_PARAMS}${createPageParams(page)}`;
+const createTagsUrl = (projectId, page) => `${URL_BASE}/${projectId}/releases?${URL_COMMON_PARAMS}${createPageParams(page)}`;
+
 
 const api = <T>(url: string): Promise<T> => {
   return fetch(url)
@@ -43,32 +50,18 @@ const api = <T>(url: string): Promise<T> => {
       }
       return response.json();
     })
-}
+};
 
 const getProjectOptionsByPage = (page: number = 0) =>
-  api<Project[]>(
-    `${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true${page ? `&page=${page}` : ''}`
-  )
-    .then(data =>
-      data.map(({ name, id }) => ({
-          label: name,
-          value: String(id)
-      })) || []
-    )
+  api<Project[]>(createProjectsUrl(page))
+    .then(data => data.map(({ name, id }) => ({ label: name, value: String(id) })) || [])
     .catch(error => {
       throw new Error(error);
     });
 
 const getReleaseOptions = (projectId, page) =>
-  api<Tag[]>(
-    `${gitlabSite}/api/v4/projects/${projectId}/releases?private_token=${token}&archived=false&simple=true${page ? `&page=${page}` : ''}`
-  )
-    .then(data =>
-      data.map(({ name, tag_name }) => ({
-          value: tag_name,
-          label: name
-      })) || []
-    )
+  api<Tag[]>(createTagsUrl(projectId, page))
+    .then(data => data.map(({ name, tag_name }) => ({ value: tag_name, label: name })) || [])
     .catch(error => {
       throw new Error(error);
     });
@@ -85,8 +78,8 @@ const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
 
     selectEl.appendChild(optionEl);
 
-    return optionEl
-}
+    return optionEl;
+};
 
 const createSelect = (type: string, options: Option[]) => {
   const selectEl: HTMLSelectElement = document.createElement("select");
@@ -106,20 +99,20 @@ const createSelect = (type: string, options: Option[]) => {
 };
 
 const removeSelect = (type: string) => {
-    document.querySelector(`select[data-type="${type}"]`)?.remove()
-}
+    document.querySelector(`select[data-type="${type}"]`)?.remove();
+};
 
 
 const updateReleaseSelect = (projectId) => {
-    const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`)
+    const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`);
 
     const createReleaseSelect = (options) => createSelect(
         SELECT_TYPE.RELEASE,
         options
-    )
+    );
 
     if (!selectEl) {
-        apiRequestGenerator((page) => getReleaseOptions(projectId, page), createReleaseSelect)
+        apiRequestGenerator((page) => getReleaseOptions(projectId, page), createReleaseSelect);
 
         return;
     }
@@ -128,25 +121,25 @@ const updateReleaseSelect = (projectId) => {
         if (optionEl.value !== SELECT_DEFAULT) {
             optionEl.remove()
         }
-    })
+    });
 
     const setSelectOptions = (options = []) => {
         selectEl.disabled = (options.length == 0);
         options.forEach((option) =>  applySelectOption(selectEl, option))
-    }
+    };
 
     apiRequestGenerator((page) =>
         getReleaseOptions(projectId, page),
         setSelectOptions
     )
-}
+};
 
 
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
     const createProjectSelect = (options) => {
-        const select = createSelect(SELECT_TYPE.PROJECT, options)
+        const select = createSelect(SELECT_TYPE.PROJECT, options);
 
         select.onchange = () => {
             if (select.value !== SELECT_DEFAULT) {
@@ -155,7 +148,7 @@ if (isJiraProjectPage) {
                 removeSelect(SELECT_TYPE.RELEASE)
             }
         }
-    }
+    };
 
     apiRequestGenerator(getProjectOptionsByPage, createProjectSelect)
 }
