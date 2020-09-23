@@ -3,7 +3,7 @@ Short plan:
 ###1. Create core functionality
 [x] - add select with project options 
 
-[ ] - display all project and tags options
+[x] - display all project and tags options
 
 [ ] - add project filter ?
 
