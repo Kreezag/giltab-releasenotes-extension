@@ -1,3 +1,5 @@
+import { apiRequestGenerator } from "./generator";
+
 interface Project {
   readonly id: number;
   readonly name: string;
@@ -41,14 +43,11 @@ const api = <T>(url: string): Promise<T> => {
       }
       return response.json();
     })
-    .then(data => {
-      return data;
-    });
 }
 
-const getProjectOptions = () =>
+const getProjectOptionsByPage = (page: number = 0) =>
   api<Project[]>(
-    `${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true`
+    `${gitlabSite}/api/v4/projects/?private_token=${token}&archived=false&simple=true${page ? `&page=${page}` : ''}`
   )
     .then(data =>
       data.map(({ name, id }) => ({
@@ -73,6 +72,7 @@ const getReleaseOptions = projectId =>
     .catch(error => {
       throw new Error(error);
     });
+
 
 
 const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: SELECT_DEFAULT });
@@ -108,15 +108,6 @@ const createSelect = (type: string, options: Option[]) => {
 const removeSelect = (type: string) => {
     document.querySelector(`select[data-type="${type}"]`)?.remove()
 }
-
-const createProjectSelect = () =>
-    getProjectOptions().then((options: Option[] = []) =>
-        createSelect(
-            SELECT_TYPE.PROJECT,
-            options
-        )
-    );
-
 
 const createReleaseSelect = (projectId: string) => {
     getReleaseOptions(projectId).then((options: Option[] = []) =>
@@ -155,13 +146,17 @@ const updateReleaseSelect = (projectId) => {
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
-  createProjectSelect().then(select => {
-      select.onchange = () => {
-          if (select.value !== SELECT_DEFAULT) {
-              updateReleaseSelect(select.value)
-          } else {
-              removeSelect(SELECT_TYPE.RELEASE)
-          }
-      }
-  });
+    const createProjectSelect = (options) => {
+        const select = createSelect(SELECT_TYPE.PROJECT, options)
+
+        select.onchange = () => {
+            if (select.value !== SELECT_DEFAULT) {
+                updateReleaseSelect(select.value)
+            } else {
+                removeSelect(SELECT_TYPE.RELEASE)
+            }
+        }
+    }
+
+    apiRequestGenerator(getProjectOptionsByPage, createProjectSelect)
 }
