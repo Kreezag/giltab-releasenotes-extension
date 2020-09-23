@@ -35,7 +35,7 @@ const SELECT_TYPE: SelectType = {
 const SELECT_DEFAULT: string = '-placeholder-';
 
 const URL_BASE = `${gitlabSite}/api/v4/projects/`;
-const URL_COMMON_PARAMS = `private_token=${token}$&archived=false&simple=true&sort=asc`;
+const URL_COMMON_PARAMS = `private_token=${token}&archived=false&simple=true&sort=asc`;
 
 const createPageParams = (page) => page ? `&page=${page}` : '';
 const createProjectsUrl = (page) => `${URL_BASE}?${URL_COMMON_PARAMS}${createPageParams(page)}`;
