@@ -12,9 +12,9 @@ interface RequestUrlParams {
 }
 
 
-const convertSearchParams = (params: RequestUrlParamsSearch|null) => {
-    if (!isEmpty(params)) {
-        return Object.entries(params.search).reduce((result, [key, value]) => result ? `${result}&${key}=${value}` : `?${key}=${value}`, '')
+const convertSearchParams = (search: RequestUrlParamsSearch|null) => {
+    if (!isEmpty(search)) {
+        return Object.entries(search).reduce((result, [key, value]) => result ? `${result}&${key}=${value}` : `?${key}=${value}`, '')
     }
     return ''
 }
@@ -28,7 +28,8 @@ const createRequestUrl = (
         hash: null,
     }) => {
     const _pathname = params.pathname.startsWith('/') ? params.pathname : `/${params.pathname}`;
-    const _protocol = origin.trim().match('/http|https:\/\//') ? '' : `${params.protocol}://`;
+    const _protocol = origin.includes('http://') || origin.includes('https://')  ? '' : `${params.protocol}://`;
+
     const _origin = origin.replace('/\/$/', '');
     const _search = convertSearchParams(params.search);
     const _hash = params.hash ? `#${params.hash}` : '';
