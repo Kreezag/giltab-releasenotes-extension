@@ -37,7 +37,7 @@ const createProjectsUrl = (page) => createRequestUrl(GITLAB_SITE, {
         simple: 'true',
         sort: 'asc'
     },
-})
+});
 
 const createTagsUrl = (projectId, page) => createRequestUrl(GITLAB_SITE, {
     pathname: `/api/v4/projects/${projectId}/releases/`,
@@ -49,7 +49,7 @@ const createTagsUrl = (projectId, page) => createRequestUrl(GITLAB_SITE, {
         simple: 'true',
         sort: 'asc'
     },
-})
+});
 
 
 
@@ -172,7 +172,6 @@ if (isJiraProjectPage && isReleaseJiraPage) {
             });
 
             setSelectOptions(existedSelect, filteredOptionsData)
-
         } else {
             const select = createSelect(SELECT_TYPE.PROJECT, filteredOptionsData);
 
@@ -189,14 +188,13 @@ if (isJiraProjectPage && isReleaseJiraPage) {
     const runSelects = () => requestAggregator((page) => getProjectOptionsByPage(page), updateProjectSelect);
 
     const storageUpdate = (value: string|null = null) => {
-        console.log('update', JSON.stringify(value))
         if (value) {
             window.localStorage.setItem(STORAGE_KEY, value);
         } else {
             window.localStorage.removeItem(STORAGE_KEY);
         }
         runSelects();
-    }
+    };
 
     const createInputConfig = () => {
         const input = document.createElement('input')
@@ -205,14 +203,12 @@ if (isJiraProjectPage && isReleaseJiraPage) {
         input.value = window.localStorage.getItem(STORAGE_KEY);
 
         input.onchange = (event) => {
-            console.log('event_change', event)
             if (input.value === '') {
                 storageUpdate(null)
             }
-        }
+        };
 
         input.onkeypress = (event) => {
-            console.log('event_keypress', event)
             if (event.code === 'Enter' && input.value) {
                 storageUpdate(input.value.replace(/[^0-9,]+/gi, ''));
             }
