@@ -1,4 +1,4 @@
-import { apiRequestGenerator } from "./generator";
+import { requestAggregator } from "./generator";
 
 interface Project {
   readonly id: number;
@@ -38,6 +38,7 @@ const URL_BASE = `${gitlabSite}/api/v4/projects/`;
 const URL_COMMON_PARAMS = `private_token=${token}&archived=false&simple=true&sort=asc`;
 
 const createPageParams = (page) => page ? `&page=${page}` : '';
+
 const createProjectsUrl = (page) => `${URL_BASE}?${URL_COMMON_PARAMS}${createPageParams(page)}`;
 const createTagsUrl = (projectId, page) => `${URL_BASE}/${projectId}/releases?${URL_COMMON_PARAMS}${createPageParams(page)}`;
 
@@ -68,7 +69,7 @@ const getReleaseOptions = (projectId, page) =>
 
 
 
-const createPlaceholderOption = (name: string): Option => ({ label: `- Select ${name} -`, value: SELECT_DEFAULT });
+const makePlaceholderOptionData = (name: string): Option => ({ label: `- Select ${name} -`, value: SELECT_DEFAULT });
 
 const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
     const optionEl = document.createElement("option");
@@ -81,13 +82,13 @@ const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
     return optionEl;
 };
 
-const createSelect = (type: string, options: Option[]) => {
+const createSelect = (type: string, optionsData: Option[]) => {
   const selectEl: HTMLSelectElement = document.createElement("select");
 
-    selectEl.dataset.type = type;
-    selectEl.disabled = (options.length === 0);
+  selectEl.dataset.type = type;
+  selectEl.disabled = (optionsData.length === 0);
 
-  [createPlaceholderOption(type), ...options].forEach(
+  [makePlaceholderOptionData(type), ...optionsData].forEach(
     (option) => applySelectOption(selectEl, option)
   );
 
@@ -106,13 +107,13 @@ const removeSelect = (type: string) => {
 const updateReleaseSelect = (projectId) => {
     const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`);
 
-    const createReleaseSelect = (options) => createSelect(
+    const createReleaseSelect = (optionsData) => createSelect(
         SELECT_TYPE.RELEASE,
-        options
+        optionsData
     );
 
     if (!selectEl) {
-        apiRequestGenerator((page) => getReleaseOptions(projectId, page), createReleaseSelect);
+        requestAggregator((page) => getReleaseOptions(projectId, page), createReleaseSelect);
 
         return;
     }
@@ -123,12 +124,12 @@ const updateReleaseSelect = (projectId) => {
         }
     });
 
-    const setSelectOptions = (options = []) => {
-        selectEl.disabled = (options.length == 0);
-        options.forEach((option) =>  applySelectOption(selectEl, option))
+    const setSelectOptions = (optionsData = []) => {
+        selectEl.disabled = (optionsData.length == 0);
+        optionsData.forEach((option) =>  applySelectOption(selectEl, option))
     };
 
-    apiRequestGenerator((page) =>
+    requestAggregator((page) =>
         getReleaseOptions(projectId, page),
         setSelectOptions
     )
@@ -138,8 +139,8 @@ const updateReleaseSelect = (projectId) => {
 const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
 
 if (isJiraProjectPage) {
-    const createProjectSelect = (options) => {
-        const select = createSelect(SELECT_TYPE.PROJECT, options);
+    const createProjectSelect = (optionsData) => {
+        const select = createSelect(SELECT_TYPE.PROJECT, optionsData);
 
         select.onchange = () => {
             if (select.value !== SELECT_DEFAULT) {
@@ -150,5 +151,5 @@ if (isJiraProjectPage) {
         }
     };
 
-    apiRequestGenerator(getProjectOptionsByPage, createProjectSelect)
+    requestAggregator((page) => getProjectOptionsByPage(page), createProjectSelect)
 }

@@ -1,4 +1,4 @@
-export function *requestGenerator (request) {
+export function *requestPagesAggregator (request) {
     let count = 0
     let hasResults = true
     const result = {}
@@ -28,7 +28,7 @@ export function execute(generator, yieldValue, resultCallback) {
     }
 }
 
-export const apiRequestGenerator = (request, doneCallback) => {
-    execute(requestGenerator(request), '', doneCallback)
+export const requestAggregator = (request, doneCallback) => {
+    execute(requestPagesAggregator(request), '', doneCallback)
 }
 
