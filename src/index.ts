@@ -159,11 +159,13 @@ const updateReleaseSelect = (projectId) => {
 
 
 const isJiraProjectPage = window.location.href.includes(`${JIRA_SITE}/`);
+const isReleaseJiraPage = document.querySelector(`.${PARENT_SELECTOR}`)
 
-if (isJiraProjectPage) {
+if (isJiraProjectPage && isReleaseJiraPage) {
     const createProjectSelect = (optionsData: Option[]) => {
-        const projectsKeysList =  window.localStorage.getItem(STORAGE_KEY).split(',')
-        const filterOptionsData = (optionsData) => optionsData.filter(({ value }) => projectsKeysList.includes(value))
+        const storedKeys = window.localStorage.getItem(STORAGE_KEY) || null;
+        const storedKeyList = storedKeys ? storedKeys.split(',') : []
+        const filterOptionsData = (optionsData) => storedKeyList.length ? optionsData.filter(({ value }) => storedKeyList.includes(value)) : optionsData
 
         const select = createSelect(SELECT_TYPE.PROJECT, filterOptionsData(optionsData));
 
@@ -180,7 +182,7 @@ if (isJiraProjectPage) {
 
     const _ext_storage_ = {
         projectKeys: ''
-    }
+    };
 
     Object.defineProperty(_ext_storage_, 'projectKeys', {
         set: function (value: string) {
