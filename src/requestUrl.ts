@@ -11,11 +11,6 @@ interface RequestUrlParams {
     protocol?: 'http'|'https';
 }
 
-const isStartWithSlash = (string: string) => {
-    const trimString = string.trim()
-
-    return trimString.startsWith('/')
-}
 
 const convertSearchParams = (params: RequestUrlParamsSearch|null) => {
     if (!isEmpty(params)) {
@@ -31,14 +26,14 @@ const createRequestUrl = (
         protocol: 'http',
         search: null,
         hash: null,
-    } ) => {
-    const _pathname = isStartWithSlash(params.pathname) ? params.pathname : `/${params.pathname}`;
-    const _protocol = origin.trim().match('/http|https:\/\//') ? '' : params.protocol;
+    }) => {
+    const _pathname = params.pathname.startsWith('/') ? params.pathname : `/${params.pathname}`;
+    const _protocol = origin.trim().match('/http|https:\/\//') ? '' : `${params.protocol}://`;
     const _origin = origin.replace('/\/$/', '');
     const _search = convertSearchParams(params.search);
     const _hash = params.hash ? `#${params.hash}` : '';
 
-    const url = new URL (`${_protocol}://${_origin}${_pathname}${_search}${_hash}`)
+    const url = new URL (`${_protocol}${_origin}${_pathname}${_search}${_hash}`)
 
     return url.toString()
 }

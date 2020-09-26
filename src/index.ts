@@ -1,4 +1,5 @@
-import { requestAggregator } from "./generator";
+import { requestAggregator } from "./requestAggregator";
+import { createRequestUrl } from "./requestUrl";
 
 interface Project {
   readonly id: number;
@@ -20,10 +21,10 @@ interface SelectType {
     RELEASE: 'release';
 }
 
-const gitlabSite = process.env.GITLAB_RESOURCE || "";
-const jiraSite = process.env.JIRA_RESOURCE || "";
+const GITLAB_SITE = process.env.GITLAB_RESOURCE || "";
+const JIRA_SITE = process.env.JIRA_RESOURCE || "";
 
-const token = process.env.PRIVATE_TOKEN || "";
+const TOKEN = process.env.PRIVATE_TOKEN || "";
 
 const PARENT_SELECTOR = "top-level-version-info";
 
@@ -34,13 +35,32 @@ const SELECT_TYPE: SelectType = {
 
 const SELECT_DEFAULT: string = '-placeholder-';
 
-const URL_BASE = `${gitlabSite}/api/v4/projects/`;
-const URL_COMMON_PARAMS = `private_token=${token}&archived=false&simple=true&sort=asc`;
 
-const createPageParams = (page) => page ? `&page=${page}` : '';
+const createProjectsUrl = (page) => createRequestUrl(GITLAB_SITE, {
+    pathname: '/api/v4/projects/',
+    protocol: 'https',
+    search: {
+        page: page,
+        private_token: TOKEN,
+        archived: 'false',
+        simple: 'true',
+        sort: 'asc'
+    },
+})
 
-const createProjectsUrl = (page) => `${URL_BASE}?${URL_COMMON_PARAMS}${createPageParams(page)}`;
-const createTagsUrl = (projectId, page) => `${URL_BASE}/${projectId}/releases?${URL_COMMON_PARAMS}${createPageParams(page)}`;
+const createTagsUrl = (projectId, page) => createRequestUrl(GITLAB_SITE, {
+    pathname: `/api/v4/projects/${projectId}/releases/`,
+    protocol: 'https',
+    search: {
+        page: page,
+        private_token: TOKEN,
+        archived: 'false',
+        simple: 'true',
+        sort: 'asc'
+    },
+})
+
+
 
 
 const api = <T>(url: string): Promise<T> => {
@@ -136,7 +156,7 @@ const updateReleaseSelect = (projectId) => {
 };
 
 
-const isJiraProjectPage = window.location.href.includes(`${jiraSite}/`);
+const isJiraProjectPage = window.location.href.includes(`${JIRA_SITE}/`);
 
 if (isJiraProjectPage) {
     const createProjectSelect = (optionsData) => {
