@@ -25,6 +25,8 @@ const GITLAB_SITE = process.env.GITLAB_RESOURCE || "";
 const JIRA_SITE = process.env.JIRA_RESOURCE || "";
 
 const TOKEN = process.env.PRIVATE_TOKEN || "";
+const STORAGE_KEY = TOKEN || '_ext_storage_'
+
 
 const PARENT_SELECTOR = "top-level-version-info";
 
@@ -159,8 +161,11 @@ const updateReleaseSelect = (projectId) => {
 const isJiraProjectPage = window.location.href.includes(`${JIRA_SITE}/`);
 
 if (isJiraProjectPage) {
-    const createProjectSelect = (optionsData) => {
-        const select = createSelect(SELECT_TYPE.PROJECT, optionsData);
+    const createProjectSelect = (optionsData: Option[]) => {
+        const projectsKeysList =  window.localStorage.getItem(STORAGE_KEY).split(',')
+        const filterOptionsData = (optionsData) => optionsData.filter(({ value }) => projectsKeysList.includes(value))
+
+        const select = createSelect(SELECT_TYPE.PROJECT, filterOptionsData(optionsData));
 
         select.onchange = () => {
             if (select.value !== SELECT_DEFAULT) {
@@ -172,4 +177,21 @@ if (isJiraProjectPage) {
     };
 
     requestAggregator((page) => getProjectOptionsByPage(page), createProjectSelect)
+
+    const _ext_storage_ = {
+        projectKeys: ''
+    }
+
+    Object.defineProperty(_ext_storage_, 'projectKeys', {
+        set: function (value: string) {
+            window.localStorage.setItem(STORAGE_KEY, value)
+        },
+        get: function () {
+            return window.localStorage.getItem(STORAGE_KEY) || null
+        }
+    })
+
+    window["_ext_storage_"] = _ext_storage_
 }
+
+
