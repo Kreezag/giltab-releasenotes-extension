@@ -1,5 +1,16 @@
 import { requestAggregator } from "./requestAggregator";
 import { createRequestUrl } from "./requestUrl";
+import {
+    GITLAB_SITE,
+    JIRA_SITE,
+    PARENT_SELECTOR,
+    SELECT_DEFAULT,
+    STORAGE_KEY,
+    SELECT_TYPE,
+    TOKEN
+} from "./constant";
+
+
 
 interface Project {
   readonly id: number;
@@ -15,28 +26,6 @@ interface Option {
   label: string;
   value: string;
 }
-
-interface SelectType {
-    PROJECT: 'project';
-    RELEASE: 'release';
-}
-
-const GITLAB_SITE = process.env.GITLAB_RESOURCE || "";
-const JIRA_SITE = process.env.JIRA_RESOURCE || "";
-
-const TOKEN = process.env.PRIVATE_TOKEN || "";
-const STORAGE_KEY = TOKEN || '_ext_storage_'
-
-
-const PARENT_SELECTOR = "top-level-version-info";
-
-const SELECT_TYPE: SelectType = {
-    PROJECT: 'project',
-    RELEASE: 'release'
-}
-
-const SELECT_DEFAULT: string = '-placeholder-';
-
 
 const createProjectsUrl = (page) => createRequestUrl(GITLAB_SITE, {
     pathname: '/api/v4/projects/',
@@ -61,7 +50,6 @@ const createTagsUrl = (projectId, page) => createRequestUrl(GITLAB_SITE, {
         sort: 'asc'
     },
 })
-
 
 
 
@@ -104,6 +92,8 @@ const applySelectOption = (selectEl: HTMLSelectElement, option: Option) => {
     return optionEl;
 };
 
+
+
 const createSelect = (type: string, optionsData: Option[]) => {
   const selectEl: HTMLSelectElement = document.createElement("select");
 
@@ -121,10 +111,17 @@ const createSelect = (type: string, optionsData: Option[]) => {
   return selectEl;
 };
 
+
+const setSelectOptions = (selectEl: HTMLSelectElement, optionsData: Option[] = []) => {
+    selectEl.disabled = (optionsData.length == 0);
+    optionsData.forEach((option) =>  applySelectOption(selectEl, option))
+};
+
+
+
 const removeSelect = (type: string) => {
     document.querySelector(`select[data-type="${type}"]`)?.remove();
 };
-
 
 const updateReleaseSelect = (projectId) => {
     const selectEl: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.RELEASE}"]`);
@@ -146,54 +143,89 @@ const updateReleaseSelect = (projectId) => {
         }
     });
 
-    const setSelectOptions = (optionsData = []) => {
-        selectEl.disabled = (optionsData.length == 0);
-        optionsData.forEach((option) =>  applySelectOption(selectEl, option))
-    };
-
     requestAggregator((page) =>
         getReleaseOptions(projectId, page),
-        setSelectOptions
+        (optionsData: Option[]) => setSelectOptions(selectEl, optionsData)
     )
 };
+
 
 
 const isJiraProjectPage = window.location.href.includes(`${JIRA_SITE}/`);
 const isReleaseJiraPage = document.querySelector(`.${PARENT_SELECTOR}`)
 
+
+
 if (isJiraProjectPage && isReleaseJiraPage) {
-    const createProjectSelect = (optionsData: Option[]) => {
+    const updateProjectSelect = (optionsData: Option[]) => {
         const storedKeys = window.localStorage.getItem(STORAGE_KEY) || null;
         const storedKeyList = storedKeys ? storedKeys.split(',') : []
-        const filterOptionsData = (optionsData) => storedKeyList.length ? optionsData.filter(({ value }) => storedKeyList.includes(value)) : optionsData
+        const filteredOptionsData = storedKeyList.length ? optionsData.filter(({ value }) => storedKeyList.includes(value)) : optionsData
 
-        const select = createSelect(SELECT_TYPE.PROJECT, filterOptionsData(optionsData));
+        const existedSelect: HTMLSelectElement = document.querySelector(`select[data-type="${SELECT_TYPE.PROJECT}"]`)
 
-        select.onchange = () => {
-            if (select.value !== SELECT_DEFAULT) {
-                updateReleaseSelect(select.value)
-            } else {
-                removeSelect(SELECT_TYPE.RELEASE)
+        if (existedSelect) {
+            existedSelect.querySelectorAll('option').forEach((optionEl) => {
+                if (optionEl.value !== SELECT_DEFAULT) {
+                    optionEl.remove()
+                }
+            });
+
+            setSelectOptions(existedSelect, filteredOptionsData)
+
+        } else {
+            const select = createSelect(SELECT_TYPE.PROJECT, filteredOptionsData);
+
+            select.onchange = () => {
+                if (select.value !== SELECT_DEFAULT) {
+                    updateReleaseSelect(select.value)
+                } else {
+                    removeSelect(SELECT_TYPE.RELEASE)
+                }
             }
         }
     };
 
-    requestAggregator((page) => getProjectOptionsByPage(page), createProjectSelect)
+    const runSelects = () => requestAggregator((page) => getProjectOptionsByPage(page), updateProjectSelect);
 
-    const _ext_storage_ = {
-        projectKeys: ''
+    const storageUpdate = (value: string|null = null) => {
+        console.log('update', JSON.stringify(value))
+        if (value) {
+            window.localStorage.setItem(STORAGE_KEY, value);
+        } else {
+            window.localStorage.removeItem(STORAGE_KEY);
+        }
+        runSelects();
+    }
+
+    const createInputConfig = () => {
+        const input = document.createElement('input')
+
+        input.type = 'search';
+        input.value = window.localStorage.getItem(STORAGE_KEY);
+
+        input.onchange = (event) => {
+            console.log('event_change', event)
+            if (input.value === '') {
+                storageUpdate(null)
+            }
+        }
+
+        input.onkeypress = (event) => {
+            console.log('event_keypress', event)
+            if (event.code === 'Enter' && input.value) {
+                storageUpdate(input.value.replace(/[^0-9,]+/gi, ''));
+            }
+        };
+
+        document
+            .querySelector(`.${PARENT_SELECTOR}`)
+            .after(input)
     };
 
-    Object.defineProperty(_ext_storage_, 'projectKeys', {
-        set: function (value: string) {
-            window.localStorage.setItem(STORAGE_KEY, value)
-        },
-        get: function () {
-            return window.localStorage.getItem(STORAGE_KEY) || null
-        }
-    })
 
-    window["_ext_storage_"] = _ext_storage_
+    runSelects();
+    createInputConfig();
 }
 
 
