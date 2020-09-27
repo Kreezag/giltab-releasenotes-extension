@@ -1,5 +1,3 @@
-const isFunction = require('lodash/isFunction')
-const isString = require('lodash/isString')
 
 interface MultiPagesRequestorOptions {
     isJson: boolean,
@@ -15,9 +13,6 @@ type cbType = (data: object) => any;
 
 
 class multiPagesRequestor {
-    private counter: number;
-    private stopCondition: boolean;
-    private readonly url: string|((data: number) => string);
     private readonly doneCallback: cbType;
     private readonly requestGenerator: (data: any) => any;
 
@@ -30,24 +25,20 @@ class multiPagesRequestor {
             stopCondition: (data:any) => !data,
         }
     ) {
-        const _url: urlCreatorType = isString(url) ? (() => String(url)) : url
-
-        this.url = (page: number) => _url(page)
-        this.counter = options.startPage
+        const urlMaker = (page: number) => (typeof url === 'string') ? url : url(page)
         this.doneCallback = options.doneCallback
 
-        this.stopCondition = options.stopCondition
 
         this.requestGenerator = function *requestPagesAggregator () {
-            let pageCount = this.counter
-            let data = yield fetch(this.url(pageCount))
+            let pageCount = options.startPage
+            let data = yield fetch(urlMaker(pageCount))
             let result = []
 
-            while (this.stopCondition(data)) {
+            while (options.stopCondition(data)) {
                 result.push({page:pageCount, data})
                 pageCount += 1
 
-                data = yield fetch(this.url(pageCount))
+                data = yield fetch(urlMaker(pageCount))
             }
 
             return result
