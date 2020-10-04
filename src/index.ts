@@ -57,6 +57,7 @@ const api = <T>(url: string): Promise<T> => {
       if (!response.ok) {
         throw new Error(response.statusText);
       }
+
       return response.json();
     })
 };
@@ -217,9 +218,38 @@ if (isJiraProjectPage && isReleaseJiraPage) {
             .after(input)
     };
 
+    const releaseNotesLinkID = 'release-report-notes-link'
+    const getReleaseNotesContent = () => {
+        const notesLink: HTMLAnchorElement = document.querySelector(`#${releaseNotesLinkID}`)
+
+        const notesUrl = notesLink ? notesLink.href : ''
+
+        console.log('notesUrl', notesUrl)
+
+        if (notesUrl) {
+            fetch(notesUrl,
+                {
+                    headers: {
+                        'Content-Type': 'text/html'
+                    }
+                })
+                .then((response) => response.text())
+                .then((result) => {
+                    console.log('result_11', result)
+
+                    result = result.replace(/^.*<textarea/, '').replace(/<\/textarea.*$/, '')
+
+                    console.log('result', result)
+
+                    return result
+                })
+        }
+    }
+
 
     runSelects();
     createInputConfig();
+    getReleaseNotesContent()
 }
 
 
