@@ -21,6 +21,7 @@ module.exports = {
   devtool: "inline-source-map",
   entry: {
     main: join(__dirname, "src/index.ts"),
+    background: join(__dirname, "src/background.ts"),
   },
   output: {
     path: join(__dirname, "dist"),

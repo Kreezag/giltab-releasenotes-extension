@@ -11,7 +11,7 @@
     }
   ],
   "background": {
-    "scripts": ["main.js"],
+    "scripts": ["background.js"],
     "persistent": false
   },
   "page_action": {
