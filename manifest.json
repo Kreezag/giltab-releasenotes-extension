@@ -6,7 +6,6 @@
   "content_scripts": [
     {
       "js": ["main.js"],
-      "css": ["main.css"],
       "matches": ["<all_urls>"],
       "run_at": "document_end"
     }
