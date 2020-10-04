@@ -16,7 +16,7 @@ Short plan:
 
 [ ] - update file structure
 
-[ ] - update typos
+[ ] - update types
 
 [ ] - create test
 
@@ -33,8 +33,10 @@ Short plan:
 
 [ ] - storage data
 
-[ ] - add  project filter to extension form 
+[ ] - add project filter to extension form 
 
 [ ] - remove unnecessary requests (projects select) 
 
 ###4. // TODO
+
+[x] - create icon
