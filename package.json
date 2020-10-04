@@ -38,7 +38,7 @@
     "build": "npm run build:contentscript-background",
     "watch:contentscript-background": "NODE_ENV=development webpack --config webpack.config.js -w",
     "watch": "NODE_ENV=development webpack --config webpack.config.js -w",
-    "clean": "rm -rf dist/* && cp manifest.json dist/ && cp src/main.css dist/ && cp -a src/assets/ ./dist/assets/",
+    "clean": "rm -rf dist/* && cp popup.html dist/ && cp manifest.json dist/ && cp src/main.css dist/ && cp -a src/assets/ ./dist/assets/",
     "prebuild": "npm run clean",
     "prewatch": "npm run clean"
   },
